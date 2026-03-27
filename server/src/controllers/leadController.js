@@ -5,10 +5,6 @@ const createLead = async (req, res) => {
     const userId = req.user.id;
     const { customerName, phoneNumber, firstMessage } = req.body;
 
-    if (!phoneNumber || !firstMessage) {
-      return res.status(400).json({ message: "Phone number and first message are required" });
-    }
-
     const businessAccount = await prisma.businessAccount.findUnique({
       where: { userId },
     });
@@ -23,16 +19,14 @@ const createLead = async (req, res) => {
         customerName,
         phoneNumber,
         firstMessage,
+        status: "new",
       },
     });
 
-    res.status(201).json({
-      message: "Lead created successfully",
-      lead,
-    });
+    return res.status(201).json(lead);
   } catch (error) {
     console.error("Create lead error:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -49,20 +43,25 @@ const getLeads = async (req, res) => {
       return res.status(404).json({ message: "Business account not found" });
     }
 
+    const whereClause = {
+      businessId: businessAccount.id,
+    };
+
+    if (status && status !== "all") {
+      whereClause.status = status;
+    }
+
     const leads = await prisma.lead.findMany({
-      where: {
-        businessId: businessAccount.id,
-        ...(status ? { status } : {}),
-      },
+      where: whereClause,
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    res.json(leads);
+    return res.status(200).json(leads);
   } catch (error) {
     console.error("Get leads error:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -71,16 +70,6 @@ const updateLeadStatus = async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
     const { status } = req.body;
-
-    if (!status) {
-      return res.status(400).json({ message: "Status is required" });
-    }
-
-    const allowedStatuses = ["new", "contacted", "closed"];
-
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
 
     const businessAccount = await prisma.businessAccount.findUnique({
       where: { userId },
@@ -106,13 +95,13 @@ const updateLeadStatus = async (req, res) => {
       data: { status },
     });
 
-    res.json({
+    return res.status(200).json({
       message: "Lead status updated successfully",
       lead: updatedLead,
     });
   } catch (error) {
     console.error("Update lead status error:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -155,7 +144,7 @@ const getDashboardMetrics = async (req, res) => {
       },
     });
 
-    res.json({
+    return res.status(200).json({
       totalLeads,
       newLeads,
       contactedLeads,
@@ -163,7 +152,7 @@ const getDashboardMetrics = async (req, res) => {
     });
   } catch (error) {
     console.error("Get dashboard metrics error:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 

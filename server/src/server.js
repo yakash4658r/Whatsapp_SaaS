@@ -7,6 +7,8 @@ const authRoutes = require("./routes/authRoutes");
 const leadRoutes = require("./routes/leadRoutes");
 const settingsRoutes = require("./routes/settingsRoutes");
 const webhookRoutes = require("./routes/webhookRoutes");
+const broadcastRoutes = require("./routes/broadcastRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
@@ -27,6 +29,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/webhook", webhookRoutes);
+app.use("/api/broadcast", broadcastRoutes);
+app.use("/api/admin", adminRoutes);
 
 const PORT = process.env.PORT || 5000;
 

@@ -36,6 +36,7 @@ model BusinessAccount {
   user             User              @relation(fields: [userId], references: [id])
   autoReplySetting AutoReplySetting?
   leads            Lead[]
+  broadcasts       Broadcast[]
 }
 
 model AutoReplySetting {
@@ -59,5 +60,31 @@ model Lead {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  business      BusinessAccount @relation(fields: [businessId], references: [id])
+  broadcastLogs BroadcastLog[]
+}
+
+model Broadcast {
+  id              String   @id @default(uuid())
+  businessId      String
+  messageText     String
+  totalRecipients Int
+  status          String   @default("pending")
+  createdAt       DateTime @default(now())
+
   business BusinessAccount @relation(fields: [businessId], references: [id])
+  logs     BroadcastLog[]
+}
+
+model BroadcastLog {
+  id           String   @id @default(uuid())
+  broadcastId  String
+  leadId       String
+  phoneNumber  String
+  sendStatus   String
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  broadcast Broadcast @relation(fields: [broadcastId], references: [id])
+  lead      Lead      @relation(fields: [leadId], references: [id])
 }
